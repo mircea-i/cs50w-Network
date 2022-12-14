@@ -1,0 +1,17 @@
+#register-form {
+    max-width: 30%;
+    margin: auto;
+    text-align: center;
+}
+
+#login-form {
+    max-width: 30%;
+    margin: auto;
+    text-align: center;   
+}
+
+#new-post {
+    max-width: 40%;
+    margin: auto;
+    text-align: center;   
+}

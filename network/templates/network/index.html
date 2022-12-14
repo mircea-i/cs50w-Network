@@ -1,0 +1,20 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+
+    {% if user.is_authenticated %}
+        <div id="new-post">
+            <!-- <h2>Create new post</h2> -->
+            <form action="{% url 'index' %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="post-content">Create new post</label>
+                    <textarea autofocus class="form-control" id="post-content" rows="3" placeholder="What's on your mind?"></textarea>
+                </div>
+                <input class="btn btn-primary" type="submit" value="Submit">
+            </form>
+        
+        </div>
+    {% endif %}
+
+{% endblock %}
