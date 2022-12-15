@@ -1,11 +1,10 @@
 {% extends "network/layout.html" %}
-
+{% load static %}
 {% block body %}
 
     {% if user.is_authenticated %}
-        <div id="new-post">
-            <!-- <h2>Create new post</h2> -->
-            <form action="{% url 'index' %}" method="post">
+        <div>
+            <form method="post" id='new-post'>
                 {% csrf_token %}
                 <div class="form-group">
                     <label for="post-content">Create new post</label>
@@ -16,5 +15,10 @@
         
         </div>
     {% endif %}
+
+    <div id="posts">
+    </div>
+    <script src = "{% static 'network/posts.js' %}"></script>
+    <script src = "{% static 'network/index.js' %}"></script>
 
 {% endblock %}

@@ -16,6 +16,14 @@ class Post(models.Model):
     likes = models.IntegerField(default=0)
     def __str__(self):
         return f"By {self.owner} at {self.creation}"
+    def serialize(self):
+        return {
+            "id": self.pk,
+            "owner": self.owner.username,
+            "content": self.content,
+            "creation": self.creation,
+            "likes": self.likes
+        }
 
 class Follow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

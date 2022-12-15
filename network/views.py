@@ -1,19 +1,23 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import User, Post
+
+import json
+
+from django.views.decorators.csrf import csrf_exempt
+
+from django.utils import timezone
 
 
 def index(request):
-
-    if request.method == "POST":
-        pass
-
-    else:
+    #if request.method == "POST":
+       # pass
+    #else:
         return render(request, "network/index.html")
 
 
@@ -69,6 +73,24 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+
 @login_required
 def new_post(request):
-    pass
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+        Post.objects.create(
+            owner = User.objects.get(username=request.user),
+            content = data.get("content"),
+            creation = timezone.now(),
+            likes = 0
+            )
+
+        print (request.user, data.get("content"))
+    
+    return render(request, "network/index.html")
+
+def posts(request):
+    all_posts = Post.objects.all().order_by("-creation")
+    return JsonResponse([post.serialize() for post in all_posts], safe=False)
+    
