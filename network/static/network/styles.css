@@ -1,6 +1,6 @@
 #register-form {
     max-width: 30%;
-    margin: auto;
+    margin: 4pt;
     text-align: center;
 }
 
@@ -11,7 +11,12 @@
 }
 
 #new-post {
-    max-width: 40%;
+    max-width: 60%;
     margin: auto;
     text-align: center;   
+}
+
+#posts {
+    max-width: 60%;
+    margin: auto;
 }

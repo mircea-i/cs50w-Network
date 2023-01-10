@@ -15,10 +15,7 @@ from django.utils import timezone
 
 
 def index(request):
-    #if request.method == "POST":
-       # pass
-    #else:
-        return render(request, "network/index.html")
+    return render(request, "network/index.html")
 
 
 def login_view(request):
@@ -79,18 +76,21 @@ def new_post(request):
 
     if request.method == "POST":
         data = json.loads(request.body)
+        print (data)
         Post.objects.create(
             owner = User.objects.get(username=request.user),
-            content = data.get("content"),
+            content = data.get("content", ""),
             creation = timezone.now(),
             likes = 0
             )
 
         print (request.user, data.get("content"))
     
-    return render(request, "network/index.html")
+        return JsonResponse({"message": "Email sent successfully."}, status=201)
+
 
 def posts(request):
     all_posts = Post.objects.all().order_by("-creation")
+    # print ([post.serialize() for post in all_posts])
     return JsonResponse([post.serialize() for post in all_posts], safe=False)
     
