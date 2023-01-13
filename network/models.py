@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-from django.utils import timezone
 from django.core.validators import MinLengthValidator
 
 
@@ -11,8 +10,8 @@ class User(AbstractUser):
 
 class Post(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
-    content = models.TextField(max_length=1000, validators=[MinLengthValidator(1)])
-    creation = models.DateTimeField(default=timezone.now())
+    content = models.TextField(max_length=500, validators=[MinLengthValidator(1)])
+    creation = models.DateTimeField(auto_now_add=True)
     likes = models.IntegerField(default=0)
     def __str__(self):
         return f"By {self.owner} at {self.creation}"
@@ -26,7 +25,7 @@ class Post(models.Model):
         }
 
 class Follow(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    followers = models.ManyToManyField(User, related_name='followers')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followed')
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
     def __str__(self):
-        return f"{self.user} followed by {self.followers.count()}"
+        return f"{self.follower} is following {self.user}"

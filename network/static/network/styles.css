@@ -1,6 +1,6 @@
 #register-form {
     max-width: 30%;
-    margin: 4pt;
+    margin: auto;
     text-align: center;
 }
 
@@ -10,7 +10,7 @@
     text-align: center;   
 }
 
-#new-post {
+#new-post, #follow_form {
     max-width: 60%;
     margin: auto;
     text-align: center;   
@@ -19,4 +19,17 @@
 #posts {
     max-width: 60%;
     margin: auto;
+}
+
+#follow_status {
+    margin: auto;
+    text-align: center;
+    font-size: 25px;
+    max-width: 60%;
+    
+}
+
+a {
+    font-size: large;
+    font-weight: 500; 
 }

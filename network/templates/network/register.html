@@ -2,10 +2,6 @@
 
 {% block body %}
 
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
-
     <div id='register-form'>
         <h2>Register</h2>
         <form action="{% url 'register' %}" method="post">

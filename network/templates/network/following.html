@@ -4,19 +4,6 @@
 
 {% block body %}
 
-    {% if user.is_authenticated %}
-
-        <div>
-            <form method="POST" action="{% url 'new_post' %}" class="form-inline justify-content-center" id="new-post">
-                {% csrf_token %}
-                <div class="form-group m-4">
-                    <textarea autofocus class="form-control" name='post-content' id="post-content" rows="3" cols="75" placeholder="What's on your mind?"></textarea>
-                </div>
-                <input class="btn btn-primary mb-2" type="submit" value="Submit">
-            </form>
-        </div>
-
-    {% endif %}
 
     <div id="posts">
 
@@ -24,17 +11,15 @@
 
             <div class="row border border-2 rounded p-2 m-3">
                 <!-- Formatting the date and time from backend -->
-                <div class="col-2"><a href="{% url 'user' id=post.owner.id %}" class="text-decoration-none">@{{ post.owner }}</a>
-                    <div class="text-info">{{ post.creation|date:"d-m-Y H:i" }}</div>
-                </div>
+                <div class="col-2">@{{ post.owner }} <br> {{ post.creation|date:"d-m-Y H:i" }}</div>
                 <div class="col">{{ post.content }}</div>
             </div>
 
         {% endfor %}
-        </div>
+    </div>
 
 
-    <nav aria-label="Page navigation example">
+    <nav aria-label="Page navigation">
         <ul class="pagination justify-content-center">
 
             <!-- Show previous button -->

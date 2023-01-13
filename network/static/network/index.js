@@ -1,8 +1,3 @@
-document.querySelector('#new-post').addEventListener('submit', event => {
-    event.preventDefault();
-    add_post();
-    })
-load_posts();
 
 function add_post() {     
     fetch('/new_post', {
