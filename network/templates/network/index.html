@@ -25,13 +25,14 @@
             <div class="row border border-2 rounded p-2 m-3">
                 <!-- Formatting the date and time from backend -->
                 <div class="col-2"><a href="{% url 'user' id=post.owner.id %}" class="text-decoration-none">@{{ post.owner }}</a>
-                    <div class="text-info">{{ post.creation|date:"d-m-Y H:i" }}</div>
+                    <div class="text-info">{{ post.creation|date:"d-m-y H:i" }}</div>
                 </div>
-                <div class="col">{{ post.content }}</div>
+                <div class="col contentpost" id="post{{ post.id }}" data-value={{ post.id }}>{{ post.content }}</div>
+                <div class="col-2"><button class="btn btn-primary" value="Edit"></div>
             </div>
 
         {% endfor %}
-        </div>
+    </div>
 
 
     <nav aria-label="Page navigation example">
@@ -49,5 +50,17 @@
         
         </ul>
     </nav>
+    <script>
+        document.getElementsByClassName('contentpost').forEach (item => {
+            addEventListener('click', () => edit(item.dataset.value))
+        })
+        function edit(post) {
+            document.getElementById(`post${post}`).style.display = 'none';
+            fetch(`/posts/${post}`, {
+                method: 'POST',
+                body: document.querySelector('#edit-body').value
+            })
+        }
 
+    </script>
 {% endblock %}

@@ -149,8 +149,17 @@ def following(request):
 def un_or_follow(request, profile):
 
     if request.method == "POST":
-        if request.POST['action'] == "follow":
-            Follow.objects.create(user=User.objects.get(username=profile), follower=request.user)
-        else:
+
+        # Try to delete follow relation if it exists and return to profile
+        try:
             Follow.objects.get(user=User.objects.get(username=profile), follower=request.user).delete()
+            return view_profile(request, User.objects.get(username=profile).pk)
+        except:
+            ObjectDoesNotExist
+
+        # Create follow relation if it does not exist and return to profile
+        Follow.objects.create(user=User.objects.get(username=profile), follower=request.user)
+        return view_profile(request, User.objects.get(username=profile).pk)
+    
+    else:
         return view_profile(request, User.objects.get(username=profile).pk)
