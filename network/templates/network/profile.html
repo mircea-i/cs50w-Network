@@ -29,6 +29,7 @@
         </div>
        
     {% endif %}
+
     <div id="posts">
 
         {% for post in p_posts %}
@@ -39,8 +40,6 @@
                 <div class="col-2 user_name"><a href="{% url 'user' id=post.owner.id %}" class="text-decoration-none">@{{ post.owner }}</a>
                     <div class="text-info">{{ post.creation|date:"d-m-y H:i" }}</div>
                 </div>
-
- 
 
                 <div class="col">{{ post.content }}</div>
             </div>

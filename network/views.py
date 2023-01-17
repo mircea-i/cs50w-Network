@@ -8,8 +8,10 @@ from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
 
 # Import models
-from .models import User, Post, Follow
+from .models import User, Post, Follow, Like
 
+# Import json
+import json
 
 def index(request):
 
@@ -19,7 +21,15 @@ def index(request):
     # GET current page number
     p_number = request.GET.get("p_number")
     p_posts = p.get_page(p_number)
-    return render(request, "network/index.html", {'p_posts': p_posts})
+
+    # Try and get likes if user is logged in
+    try:
+        p_likes = Post.objects.filter(pk__in=Like.objects.filter(user=request.user).values_list('post'))
+    except:
+        ObjectDoesNotExist
+        p_likes = []
+    print(p_likes)
+    return render(request, "network/index.html", {'p_posts': p_posts, 'p_likes': p_likes})
 
 
 def login_view(request):
@@ -150,16 +160,63 @@ def un_or_follow(request, profile):
 
     if request.method == "POST":
 
-        # Try to delete follow relation if it exists and return to profile
+        # Try to delete follow relation if it exists and return to profile view
         try:
             Follow.objects.get(user=User.objects.get(username=profile), follower=request.user).delete()
-            return view_profile(request, User.objects.get(username=profile).pk)
+            return HttpResponseRedirect(reverse(view_profile, kwargs={'id': User.objects.get(username=profile).pk}))
         except:
             ObjectDoesNotExist
-
+        
         # Create follow relation if it does not exist and return to profile
         Follow.objects.create(user=User.objects.get(username=profile), follower=request.user)
-        return view_profile(request, User.objects.get(username=profile).pk)
+        return HttpResponseRedirect(reverse(view_profile, kwargs={'id': User.objects.get(username=profile).pk}))
     
+    # Go back to index if not using POST
     else:
-        return view_profile(request, User.objects.get(username=profile).pk)
+        return HttpResponseRedirect(reverse(index))
+
+
+@login_required
+def edit_post(request, id):
+
+    # Go back to index if trying to edit other user's post
+    if request.user != Post.objects.get(pk=id).owner:
+            return HttpResponseRedirect(reverse(index))
+
+    # Edit post content 
+    if request.method == "POST":
+
+        # Get data
+        content = json.loads(request.body).get("body")
+        try:
+            post = Post.objects.get(pk=id)
+            post.content = content
+            post.save()
+            return JsonResponse({'content': content}, status=200)
+
+        # Return to index if something went wrong
+        except:
+            ObjectDoesNotExist
+            return HttpResponseRedirect(reverse(index))
+
+
+@login_required
+def un_or_like(request, id):
+
+    # Go back to index if trying to like own post
+    if request.user == Post.objects.get(pk=id).owner:
+            return redirect(reverse(index))
+    print(id)
+    if request.method == "POST": 
+        content = json.loads(request.body).get("content")
+
+        try:
+            Like.objects.get(post__pk=id, user=request.user).delete()
+            return JsonResponse({'body': "Like removed"}, safe=False, status=200)
+        except:
+            ObjectDoesNotExist
+            Like.objects.create(post=Post.objects.get(pk=id), user=request.user)
+            return JsonResponse({'body': "Like added"}, safe=False, status=200)
+        print(content)
+        return JsonResponse({'content': content}, status=200)
+    pass
