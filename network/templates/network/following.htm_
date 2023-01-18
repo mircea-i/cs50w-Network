@@ -12,8 +12,20 @@
             <div class="row border border-2 rounded p-2 m-3">
                 <!-- Formatting the date and time from backend -->
                 <div class="col-2"><a href="{% url 'user' id=post.owner.id %}" class="text-decoration-none">@{{ post.owner }}</a>
-                <div class="text-info">{{ post.creation|date:"d-m-y H:i" }}</div>
+                    <div class="text-info">{{ post.creation|date:"d-m-y H:i" }}</div>
                 </div>
+
+                <div class="col-1">
+                    <!-- Like - unlike logic -->
+                    {% if post in p_likes %}
+                        <button class="btn btn-danger btn-sm fa fa-lg fa-thumbs-down" id="like{{ post.id }}" onclick="un_or_like({{ post.id }})"></button>
+                    {% else %}
+                    <button class="btn btn-success btn-sm fa fa-lg fa-thumbs-up" id="like{{ post.id }}" onclick="un_or_like({{ post.id }})"></button>
+                    {% endif %}
+                    <!-- Number of likes -->
+                    <div class="text-info" id="likes{{ post.id }}">x {{ post.likes }}</div>
+                </div>
+
                 <div class="col">{{ post.content }}</div>
             </div>
 
@@ -36,5 +48,11 @@
         
         </ul>
     </nav>
+
+    <!-- Need CSRF, to be implemented in django -->
+    {% csrf_token %}
+
+    <!-- Need only follow logic since you don't see any of your posts -->
+    <script src="{% static 'network/un_or_like.js' %}"></script>
 
 {% endblock %}

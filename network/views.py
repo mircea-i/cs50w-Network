@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.core.paginator import Paginator
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import F
 
 # Import models
 from .models import User, Post, Follow, Like
@@ -13,9 +14,10 @@ from .models import User, Post, Follow, Like
 # Import json
 import json
 
+
 def index(request):
 
-    # Create pagination and split by 10 posts
+    # Create pagination, split posts by 10 and order them
     p = Paginator(Post.objects.all().order_by("creation").reverse(), 10)
 
     # GET current page number
@@ -28,7 +30,7 @@ def index(request):
     except:
         ObjectDoesNotExist
         p_likes = []
-    print(p_likes)
+
     return render(request, "network/index.html", {'p_posts': p_posts, 'p_likes': p_likes})
 
 
@@ -93,7 +95,7 @@ def new_post(request):
 
         # Check if non empty post 
         if request.POST['post-content'] == "":
-            return redirect(reverse("index"), {"message": "You need to post something"})
+            return redirect(reverse("index"))
 
         # If all is ok then create new post
         else:
@@ -101,7 +103,7 @@ def new_post(request):
                 owner = User.objects.get(pk=request.user.id),
                 content = request.POST['post-content']
             )
-            return redirect(reverse("index"), {"message": "Post created successfully"})
+            return redirect(reverse("index"))
     
     # Return to index 
     else:
@@ -128,6 +130,13 @@ def view_profile(request, id):
 
     p = Paginator(Post.objects.filter(owner__pk=id).order_by("creation").reverse(), 10)
 
+    # Get liked posts
+    try:
+        p_likes = Post.objects.filter(pk__in=Like.objects.filter(user=request.user).values_list('post'))
+    except:
+        ObjectDoesNotExist
+        p_likes = []
+
     # GET current page number
     p_number = request.GET.get("p_number")
     p_posts = p.get_page(p_number)
@@ -136,6 +145,7 @@ def view_profile(request, id):
 
     return render(request, "network/profile.html", {
         'p_posts': p_posts,
+        'p_likes': p_likes,
         'followers': Follow.objects.filter(user=user_profile).count(),
         'following': Follow.objects.filter(follower=user_profile).count(),
         'my_profile': my_profile,
@@ -150,11 +160,19 @@ def following(request):
     # Janky filter to get all followed users posts
     p = Paginator(Post.objects.filter(owner__pk__in=(Follow.objects.filter(follower=request.user).values_list('user'))).order_by("creation").reverse(), 10)
     
+    # Try and get all likes
+    try:
+        p_likes = Post.objects.filter(pk__in=Like.objects.filter(user=request.user).values_list('post'))
+    except:
+        ObjectDoesNotExist
+        p_likes = []
+    
     # GET current page number
     p_number = request.GET.get("p_number")
     p_posts = p.get_page(p_number)
-    return render(request, "network/following.html", {'p_posts': p_posts})
-    
+    return render(request, "network/index.html", {'p_posts': p_posts, 'p_likes': p_likes})
+
+
 @login_required
 def un_or_follow(request, profile):
 
@@ -179,44 +197,53 @@ def un_or_follow(request, profile):
 @login_required
 def edit_post(request, id):
 
-    # Go back to index if trying to edit other user's post
-    if request.user != Post.objects.get(pk=id).owner:
-            return HttpResponseRedirect(reverse(index))
-
     # Edit post content 
     if request.method == "POST":
 
         # Get data
         content = json.loads(request.body).get("body")
-        try:
-            post = Post.objects.get(pk=id)
-            post.content = content
-            post.save()
-            return JsonResponse({'content': content}, status=200)
 
-        # Return to index if something went wrong
-        except:
-            ObjectDoesNotExist
-            return HttpResponseRedirect(reverse(index))
+        if request.user == Post.objects.get(pk=id).owner:
+            try:
+                Post.objects.filter(pk=id).update(content=content)
+                return JsonResponse({'content': content}, status=200)
+
+            # Return to index if something went wrong
+            except:
+                ObjectDoesNotExist
+                return HttpResponseRedirect(reverse(index))
+        
+        # Return to index if not post owner
+        else:
+            HttpResponseRedirect(reverse(index))
+
+    # Return to index if reaching via GET
+    else:
+        return HttpResponseRedirect(reverse(index))
 
 
 @login_required
 def un_or_like(request, id):
 
-    # Go back to index if trying to like own post
-    if request.user == Post.objects.get(pk=id).owner:
-            return redirect(reverse(index))
-    print(id)
     if request.method == "POST": 
+
+        # Go back to index if trying to like own post
+        if request.user == Post.objects.get(pk=id).owner:
+            return redirect(reverse(index))
+            
         content = json.loads(request.body).get("content")
 
         try:
             Like.objects.get(post__pk=id, user=request.user).delete()
-            return JsonResponse({'body': "Like removed"}, safe=False, status=200)
+
+            # F works only on filter, not on get; return current number of likes
+            Post.objects.filter(pk=id).update(likes=F('likes') - 1)
+            return JsonResponse({'data': Post.objects.get(pk=id).likes}, status=200)
+
         except:
             ObjectDoesNotExist
             Like.objects.create(post=Post.objects.get(pk=id), user=request.user)
-            return JsonResponse({'body': "Like added"}, safe=False, status=200)
-        print(content)
-        return JsonResponse({'content': content}, status=200)
-    pass
+
+            # F works only on filter, not on get; return current number of likes
+            Post.objects.filter(pk=id).update(likes=F('likes') + 1)
+            return JsonResponse({'data': Post.objects.get(pk=id).likes}, status=200)

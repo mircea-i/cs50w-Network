@@ -41,9 +41,29 @@
                     <div class="text-info">{{ post.creation|date:"d-m-y H:i" }}</div>
                 </div>
 
-                <div class="col">{{ post.content }}</div>
-            </div>
+                <div class="col1">
+                    <!-- Like / Unlike logic -->
+                    {% if not my_profile %}
+                        {% if post in p_likes %}
+                        <button class="btn btn-danger btn-sm fa fa-lg fa-thumbs-down" id="like{{ post.id }}" onclick="un_or_like({{ post.id }})"></button>
+                        {% else %}
+                        <button class="btn btn-success btn-sm fa fa-lg fa-thumbs-up" id="like{{ post.id }}" onclick="un_or_like({{ post.id }})"></button>
+                        {% endif %}
+                    {% endif %}
+                    <!-- Number of likes -->
+                    <div class="text-info" id="likes{{ post.id }}">x {{ post.likes }}</div>
+            
+                </div>
+            
+                <div class="col contentpost">
+                    <div id="post{{ post.id }}">{{ post.content }}</div>
+                </div>
 
+            <!-- Show the edit button if post owner -->
+            {% if user == post.owner %}
+                <div class="col-1"><button class="btn btn-light btn-sm align-self-end" id="button{{ post.id }}" data-value={{ post.id }}>Edit</button></div>
+            {% endif %}
+            </div>
         {% endfor %}
     </div>
 
@@ -63,5 +83,12 @@
         
         </ul>
     </nav>
+
+    <!-- Insert csrf token -->
+    {% csrf_token %}
+
+    <!-- Get the scripts -->
+    <script src="{% static '/network/edit.js' %}"></script>
+    <script src="{% static '/network/un_or_like.js' %}"></script>
 
 {% endblock %}
